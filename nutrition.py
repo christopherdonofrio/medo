@@ -1,7 +1,54 @@
 import openai
 import pandas as pd
+import speech_recognition as sr
+import pyttsx3 
+
 
 openai.api_key = 'sk-proj-ll5CgZx6jPW7YcwriHw4T3BlbkFJ25L3pWg4cDZDoSjBAd6o'
+
+# TRAIN ON MORE SPECIFIC NUTRITION RESOURCES
+# SIMPLIFY USER EXPERIENCE
+# WHAT TO EAT, WHEN, AND IF IM ON TRACK
+# USE DATABASE TO STORE PREVIOUS SCORES/DATA, USE THAT TO GIVE FUTURE RECOMMENDATIONS 
+# USE SPEECH TO TEXT LIBRARY 
+# score metrics from baseline to rolling 30 day score
+
+# Python program to translate
+# speech to text and text to speech
+ 
+ 
+
+ 
+# Initialize the recognizer 
+r = sr.Recognizer() 
+
+# Function to convert text to speech
+def SpeakText(command):
+    # Initialize the engine
+    engine = pyttsx3.init()
+    engine.say(command) 
+    engine.runAndWait()
+     
+# Function to convert speech to text
+def get_speech_input():
+    try:
+        # Use the microphone as source for input.
+        with sr.Microphone() as source:
+            # Wait for a second to let the recognizer adjust the energy threshold
+            r.adjust_for_ambient_noise(source, duration=0.2)
+            # Listens for the user's input
+            audio = r.listen(source)
+            # Using Google to recognize audio
+            text = r.recognize_google(audio)
+            text = text.lower()
+            print("Did you say:", text)
+            return text
+    except sr.RequestError as e:
+        print("Could not request results; {0}".format(e))
+        return None
+    except sr.UnknownValueError:
+        print("Unknown error occurred")
+        return None
 
 # Example user details
 height = 72
@@ -11,7 +58,7 @@ gender = "male"
 activity_level = "very active"
 goal = "Gain Muscle"
 
-# taking theos csv and reading  file
+# Taking Theo's CSV and reading file
 file_path = 'supps.csv'
 df = pd.read_csv(file_path)
 data_str = df.to_string(index=False)
@@ -34,11 +81,11 @@ def get_target_macros(height, weight, age, gender, activity_level, goal):
     
     return response.choices[0].message.content
 
-#Step 2
-def analyze_diet_description(diet_description):
+# Step 2
+def analyze_nutrition_description(nutrition_description):
     prompt = (
-        f"Diet description: {diet_description}\n"
-        "Estimate the total number of calories, grams of protein, fat, and carbs in this daily diet."
+        f"Nutrition description: {nutrition_description}\n"
+        "Estimate the total number of calories, grams of protein, fat, and carbs in this daily nutrition."
     )
     
     response = openai.chat.completions.create(
@@ -52,12 +99,12 @@ def analyze_diet_description(diet_description):
     
     return response.choices[0].message.content
 
-# Step 3: Score the daily diet based on the target macros using GPT-4
-def score_diet_with_gpt(target_macros, diet_analysis):
+# Step 3: Score the daily nutrition based on the target macros using GPT-4
+def score_nutrition_with_gpt(target_macros, nutrition_analysis):
     prompt = (
         f"Target macros: {target_macros}\n"
-        f"Diet analysis: {diet_analysis}\n"
-        "Based on these numbers, score the diet overall on a scale of 1 to 5 according to how well it meets the target macros. Then offer advice on what foods to add to the diet to meet the target macronutrients."
+        f"Nutrition analysis: {nutrition_analysis}\n"
+        "Based on these numbers, score the nutrition overall on a scale of 1 to 5 according to how well it meets the target macros. Then tell me exactly what to eat and when to hit reach my goals."
     )
     
     response = openai.chat.completions.create(
@@ -93,26 +140,22 @@ def supplement_advice(myGoal):
 
 
 def main():
+
     # Step 1: Get the macro nutrients and calorie counts
     target_macros = get_target_macros(height, weight, age, gender, activity_level, goal)
     print(f"Fitness Plan:\n{target_macros}\n")
     
-    # Step 2: Describe the daily diet 
-    diet_description = (
-        "Breakfast: 3 scrambled eggs, 2 slices cheese, 2 frozen hasbrowns, 1 roll. \n"
-        "Snack: chocolate bar"
-        "Dinner: grilled chicken, vegetables, 1 roll \n"
-        "Snack: milk with a scoop of protein powder"
-    )
-    print(f"Diet Description: {diet_description}\n")
+    # Step 2: Describe the daily nutrition 
+    nutrition_description = get_speech_input()
+    print(f"Nutrition Description: {nutrition_description}\n")
     
-    # Step 3: Analyze the daily diet description using GPT-4
-    diet_analysis = analyze_diet_description(diet_description)
-    print(f"Diet Analysis: {diet_analysis}\n")
+    # Step 3: Analyze the daily nutrition description using GPT-4
+    nutrition_analysis = analyze_nutrition_description(nutrition_description)
+    print(f"Nutrition Analysis: {nutrition_analysis}\n")
     
-    # Step 4: Score the diet using GPT-4
-    diet_score = score_diet_with_gpt(target_macros, diet_analysis)
-    print(f"Diet Score: {diet_score}")
+    # Step 4: Score the nutrition using GPT-4
+    nutrition_score = score_nutrition_with_gpt(target_macros, nutrition_analysis)
+    print(f"Nutrition Score: {nutrition_score}")
 
     # Step 5: Give supplement advice
     supp_Advice = supplement_advice(goal)
