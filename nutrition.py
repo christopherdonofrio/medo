@@ -4,7 +4,7 @@ import speech_recognition as sr
 import pyttsx3 
 
 
-openai.api_key = 'sk-proj-ll5CgZx6jPW7YcwriHw4T3BlbkFJ25L3pWg4cDZDoSjBAd6o'
+openai.api_key = 'API-KEY-GPT4o'
 
 # TRAIN ON MORE SPECIFIC NUTRITION RESOURCES
 # SIMPLIFY USER EXPERIENCE
